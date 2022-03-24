@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="noindex, nofollow"/>
+    <link rel="stylesheet" href="Isotest.css">
+</head>
+<body>
+    <script type="text/javascript">
+        $(document).ready(function()
+        {
+            var $b = $("body");
+            $("input:text,input:password").each(function()
+            {
+                var fld = AXES.Terminal.getFieldById($(this).attr("id"));
+                if (fld) 
+                {
+                    $(this).bind("blur", fld, function(e)
+                    {
+                        e.data.setValue($(this).val());
+                    }).bind("focus", fld, function(e)
+                    {
+                        e.data.setCursor();
+                    }).val(fld.getValue());
+                    
+                    fld.addListener("SetFocus", function(event)
+                    {
+                        this.focus();
+                    }, this);
+                    fld.addListener("ValueChanged", function(event)
+                    {
+                        $(this).val(event.field.getValue());
+                    }, this);
+                }
+            });
+
+            $("#loginPwd").blur(function()
+            {
+                $("#CapsLockMessage").css("visibility", "hidden");
+            }).focus(function()
+            {
+                $("#CapsLockMessage").css("visibility", "hidden");
+            }).keypress(function(event)
+            {
+                if ((event.shiftKey && (event.which >= 97 && event.which <= 122)) || (!event.shiftKey && (event.which >= 65 && event.which <= 90))) 
+                {
+                    var to = $("#CapsLockMessage").css("visibility", "visible").data("timeout");
+                    if (to) window.clearTimeout(to);
+                    to = window.setTimeout(function()
+                    {
+                        $("#CapsLockMessage").removeData("timeout").css("visibility", "hidden");
+                    }, 2000);
+                    $("#CapsLockMessage").data("timeout", to);
+                }
+            });
+            
+            var fld = AXES.Terminal.getFieldById("loginReconnect");
+            var $elem = $("#loginReconnect");
+            if (fld && $elem.length) 
+            {
+                $elem.bind("click", fld, function(e)
+                {
+                    e.data.setValue((this.checked) ? "Y" : "N");
+                    if (this.checked) 
+                    {
+                        $("#advancedLoginFields *").prop("disabled", "disabled");
+                    }
+                    else 
+                    {
+                        $("#advancedLoginFields *").prop("disabled", false);
+                    }
+                }).prop("checked", (fld.getValue() && fld.getValue().toUpperCase() != "N") ? "checked" : false);
+                
+                if (fld.getValue() && fld.getValue().toUpperCase() != "N") 
+                {
+                    $("#advancedLoginFields *").prop("disabled", "disabled");
+                }
+                
+                fld.addListener("SetFocus", function(event)
+                {
+                    this.focus();
+                }, $elem[0]);
+                fld.addListener("ValueChanged", function(event)
+                {
+                    $(this).val(event.field.getValue());
+                }, $elem[0]);
+            }
+            
+            fld = AXES.Terminal.getFieldById("loginScreenType");
+            var $elem = $("#loginScreenType");
+            if (fld && $elem.length) 
+            {
+                if (!AXES.Terminal.isDBCSCapable) $elem[0].options.length = 4;
+                $elem.bind("change", fld, function(e)
+                {
+                    e.data.setValue($(this).val());
+                }).bind("focus", fld, function(e)
+                {
+                    e.data.setCursor();
+                }).val(fld.getValue());
+                
+                fld.addListener("SetFocus", function(event)
+                {
+                    this.focus();
+                }, $elem[0]);
+                fld.addListener("ValueChanged", function(event)
+                {
+                    $(this).val(event.field.getValue());
+                }, $elem[0]);
+            }
+
+            $("#btnDoLogin").click(function()
+            {
+                if ( AXES.urlParameters["sso"] ) {
+                    AXES.Terminal.doSSOLogin();
+                } else {
+                    AXES.Terminal.doPost(AXES.Keyboard.aidKeys.Enter);
+                }
+            });
+            
+            $("#loginUser").attr("placeholder", TEXT.core("Nombre de usuario"));
+            $("#loginPwd").attr("placeholder", TEXT.core("Contraseña"));
+
+            if (AXES.Terminal.passwordLevel > 0) $("#loginPwd").attr("maxlength", "128").attr("title", TEXT.core("Logon.001"));
+            
+            $(document).data("focusElement", $("#loginUser")[0]);
+            
+            
+            TEXT.apply(window, AXES.Layout.displayArea[0]);
+
+            var modal = document.getElementById('loginPage');
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+            
+            
+        });
+        
+    </script>
+    <main>
+        <h1>Kiosco Integral Nomitek</h1>
+        <button class="btn-grad" onclick="document.getElementById('loginPage').style.display='block'" style="width:auto;">
+            <img src="./img/alogo.png" width="80px">
+        </button>
+        <a onclick="document.getElementById('loginPage').style.display='block'" style="width:auto;"><span>Consultar Aviso de Privacidad</span></a>
+
+    </main>
+    <div id="loginPage" class="modal">
+        <div class="modal-content animate">
+            <div class="title">
+                <img src="./img/logo.png" width="300px">
+                <p><b>ACCESO AL KIOSCO</b></p><br>
+                <p>Ingresar Clave y Contraseña del Usuario Genérico del Kiosco</p>    
+            </div>
+            <form class="login">
+                <input type="text" placeholder="Usuario" id="loginUser" maxlength="10" required>
+                
+                <input type="password" placeholder="Contraseña" id="loginPwd" maxlength="10" required>
+                <br>
+                <button type="submit" id="btnDoLogin"><span class="text">Acceder</span></button>
+                <button type="button" onclick="document.getElementById('loginPage').style.display='none'" id="cancelbtn">Cancel</button>
+
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
